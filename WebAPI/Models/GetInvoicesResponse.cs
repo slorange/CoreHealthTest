@@ -4,5 +4,6 @@
 	{
 		public List<Invoice> Invoices { get; set; }
 		public decimal InvoicesTotal { get; set; }
+		public string Error { get; set; }
 	}
 }
