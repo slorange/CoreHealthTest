@@ -25,73 +25,70 @@ namespace WebAPI.Controllers
 
 				List<Invoice> invoices = new List<Invoice>();
 
-				using (SqlConnection sqlConnection = new SqlConnection("Server=localhost\\SQLEXPRESS;Database=MyCompany;Trusted_Connection=True;"))
+				using SqlConnection sqlConnection = new SqlConnection("Server=localhost\\SQLEXPRESS;Database=MyCompany;Trusted_Connection=True;");
+				sqlConnection.Open();
+
+				using SqlCommand command = sqlConnection.CreateCommand();
+
+				command.CommandText = $@"
+					SELECT *
+					FROM invoice AS inv 
+					JOIN customer AS c ON inv.CustomerId = c.CustomerId 
+					JOIN InvoiceItem AS ii ON ii.InvoiceId = inv.InvoiceId
+					JOIN Item AS i ON ii.ItemId = i.ItemId
+					WHERE c.Company = @Company";
+
+				command.Parameters.AddWithValue("@Company", company);
+
+				SqlDataReader reader = command.ExecuteReader();
+				while (reader.Read())
 				{
-					sqlConnection.Open();
-					using (SqlCommand command = sqlConnection.CreateCommand())
+					Customer customer = new Customer
 					{
-						command.CommandText = $@"
-							SELECT *
-							FROM invoice AS inv 
-							JOIN customer AS c ON inv.CustomerId = c.CustomerId 
-							JOIN InvoiceItem AS ii ON ii.InvoiceId = inv.InvoiceId
-							JOIN Item AS i ON ii.ItemId = i.ItemId
-							WHERE c.Company = @Company";
+						CustomerId = reader.GetGuid(5),
+						FirstName = reader.GetString(6),
+						LastName = reader.GetString(7),
+						Company = reader.GetString(8),
+						Created = reader.GetDateTime(9)
+					};
 
-						command.Parameters.AddWithValue("@Company", company);
+					Item item = new Item
+					{
+						ItemId = reader.GetGuid(15),
+						Name = reader.GetString(16),
+						Price = reader.GetDecimal(17),
+						Created = reader.GetDateTime(18)
+					};
 
-						SqlDataReader reader = command.ExecuteReader();
-						while (reader.Read())
+					Invoice invoice = invoices.FirstOrDefault(i => i.InvoiceId == reader.GetGuid(0));
+					if (invoice == null)
+					{
+						invoice = new Invoice
 						{
-							Customer customer = new Customer
-							{
-								CustomerId = reader.GetGuid(5),
-								FirstName = reader.GetString(6),
-								LastName = reader.GetString(7),
-								Company = reader.GetString(8),
-								Created = reader.GetDateTime(9)
-							};
-
-							Item item = new Item
-							{
-								ItemId = reader.GetGuid(15),
-								Name = reader.GetString(16),
-								Price = reader.GetDecimal(17),
-								Created = reader.GetDateTime(18)
-							};
-
-							Invoice invoice = invoices.FirstOrDefault(i => i.InvoiceId == reader.GetGuid(0));
-							if (invoice == null)
-							{
-								invoice = new Invoice
-								{
-									InvoiceId = reader.GetGuid(0),
-									Customer = customer,
-									Reference = reader.GetString(2),
-									Total = reader.GetDecimal(3),
-									Created = reader.GetDateTime(4)
-								};
-								invoices.Add(invoice);
-							}
-
-							InvoiceItem invoiceItem = new InvoiceItem
-							{
-								InvoiceItemId = reader.GetGuid(10),
-								InvoiceId = invoice.InvoiceId,
-								Item = item,
-								Quantity = reader.GetInt32(13),
-								Created = reader.GetDateTime(14)
-							};
-
-							invoice.Items.Add(invoiceItem);
-						}
+							InvoiceId = reader.GetGuid(0),
+							Customer = customer,
+							Reference = reader.GetString(2),
+							Total = reader.GetDecimal(3),
+							Created = reader.GetDateTime(4)
+						};
+						invoices.Add(invoice);
 					}
+
+					InvoiceItem invoiceItem = new InvoiceItem
+					{
+						InvoiceItemId = reader.GetGuid(10),
+						InvoiceId = invoice.InvoiceId,
+						Item = item,
+						Quantity = reader.GetInt32(13),
+						Created = reader.GetDateTime(14)
+					};
+
+					invoice.Items.Add(invoiceItem);
 				}
 
 				decimal customerInvoiceTotal = invoices.Sum(invoice => invoice.Total);
 
 				_logger.LogInformation("Successful GetInvoices request for company: " + company);
-
 
 				return new Response<GetInvoicesResponse>(responseCode: "200", new GetInvoicesResponse()
 				{
