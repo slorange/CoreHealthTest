@@ -21,9 +21,10 @@ namespace WebAPI.Controllers
         {
             List<Invoice> invoices = new List<Invoice>();
 
-            using (SqlConnection sqlConnection = new SqlConnection("Server=.;Database=MyCompany;User Id=MyUser;Password=12345;"))
+            using (SqlConnection sqlConnection = new SqlConnection("Server=localhost\\SQLEXPRESS;Database=MyCompany;Trusted_Connection=True;"))
             {
-                using (SqlCommand command = sqlConnection.CreateCommand())
+				sqlConnection.Open();
+				using (SqlCommand command = sqlConnection.CreateCommand())
                 {
                     command.CommandText = $"select * from invoice as inv join customer as c on inv.CustomerId = c.CustomerId where c.Company = '" + company + "'";
 
@@ -49,7 +50,7 @@ namespace WebAPI.Controllers
 
             foreach(Invoice invoice in invoices)
             {
-                using (SqlConnection sqlConnection = new SqlConnection("Server=.;Database=MyCompany;User Id=MyUser;Password=12345;"))
+                using (SqlConnection sqlConnection = new SqlConnection("Server=localhost\\SQLEXPRESS;Database=MyCompany;Trusted_Connection=True;"))
                 {
                     using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
                     {
