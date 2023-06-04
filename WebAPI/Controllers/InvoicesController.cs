@@ -52,23 +52,25 @@ namespace WebAPI.Controllers
 								Created = reader.GetDateTime(9)
 							};
 
-							Item item = new Item(
-								itemId: reader.GetGuid(15),
-								name: reader.GetString(16),
-								price: reader.GetDecimal(17),
-								created: reader.GetDateTime(18)
-							);
+							Item item = new Item
+							{
+								ItemId = reader.GetGuid(15),
+								Name = reader.GetString(16),
+								Price = reader.GetDecimal(17),
+								Created = reader.GetDateTime(18)
+							};
 
 							Invoice invoice = invoices.FirstOrDefault(i => i.InvoiceId == reader.GetGuid(0));
 							if (invoice == null)
 							{
-								invoice = new Invoice(
-									invoiceId: reader.GetGuid(0),
-									customer: customer,
-									reference: reader.GetString(2),
-									total: reader.GetDecimal(3),
-									created: reader.GetDateTime(4)
-								);
+								invoice = new Invoice
+								{
+									InvoiceId = reader.GetGuid(0),
+									Customer = customer,
+									Reference = reader.GetString(2),
+									Total = reader.GetDecimal(3),
+									Created = reader.GetDateTime(4)
+								};
 								invoices.Add(invoice);
 							}
 
