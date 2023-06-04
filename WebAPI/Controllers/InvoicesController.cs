@@ -9,7 +9,6 @@ namespace WebAPI.Controllers
 	public class InvoicesController : ControllerBase
 	{
 		private readonly ILogger<InvoicesController> _logger;
-
 		private readonly string _connString = "Server=localhost\\SQLEXPRESS;Database=MyCompany;Trusted_Connection=True;";
 
 		public InvoicesController(ILogger<InvoicesController> logger)
@@ -25,6 +24,14 @@ namespace WebAPI.Controllers
 			{
 				_logger.LogInformation("Received GetInvoices request for company: " + company);
 
+				if(!CompanyExists(company))
+				{
+					return new Response<GetInvoicesResponse>(responseCode: "200", new GetInvoicesResponse()
+					{
+						Error = "Company not found: " + company
+					});
+				}
+
 				List<Invoice> invoices = new List<Invoice>();
 
 				using SqlConnection sqlConnection = new SqlConnection(_connString);
@@ -34,8 +41,8 @@ namespace WebAPI.Controllers
 
 				command.CommandText = $@"
 					SELECT *
-					FROM invoice AS inv 
-					JOIN customer AS c ON inv.CustomerId = c.CustomerId 
+					FROM Invoice AS inv 
+					JOIN Customer AS c ON inv.CustomerId = c.CustomerId 
 					JOIN InvoiceItem AS ii ON ii.InvoiceId = inv.InvoiceId
 					JOIN Item AS i ON ii.ItemId = i.ItemId
 					WHERE c.Company = @Company";
@@ -108,6 +115,21 @@ namespace WebAPI.Controllers
 					Error = "Exception in GetInvoices: " + e
 				});
 			}
+		}
+
+		private bool CompanyExists(string company)
+		{
+			using SqlConnection sqlConnection = new SqlConnection(_connString);
+			sqlConnection.Open();
+
+			using SqlCommand command = sqlConnection.CreateCommand();
+
+			command.CommandText = "SELECT COUNT(*) FROM Customer WHERE Company = @Company";
+			command.Parameters.AddWithValue("@Company", company);
+
+			int count = (int)command.ExecuteScalar();
+
+			return count > 0;
 		}
 	}
 }
