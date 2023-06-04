@@ -79,17 +79,9 @@ namespace WebAPI.Controllers
                 }
             }
 
-            decimal customerInvoiceTotal = 0;
+			decimal customerInvoiceTotal = invoices.Sum(invoice => invoice.Total);
 
-            foreach (Invoice invoice in invoices)
-            {
-                foreach(var invoiceItem in invoice.Items)
-                {
-                    customerInvoiceTotal = +invoiceItem.Item.Price;
-                }
-            }
-
-            return new Response<GetInvoicesResponse>(responseCode: "200", new GetInvoicesResponse()
+			return new Response<GetInvoicesResponse>(responseCode: "200", new GetInvoicesResponse()
             {
                 Invoices = invoices,
                 InvoicesTotal = customerInvoiceTotal
