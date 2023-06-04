@@ -10,6 +10,8 @@ namespace WebAPI.Controllers
 	{
 		private readonly ILogger<InvoicesController> _logger;
 
+		private readonly string _connString = "Server=localhost\\SQLEXPRESS;Database=MyCompany;Trusted_Connection=True;";
+
 		public InvoicesController(ILogger<InvoicesController> logger)
 		{
 			_logger = logger;
@@ -25,7 +27,7 @@ namespace WebAPI.Controllers
 
 				List<Invoice> invoices = new List<Invoice>();
 
-				using SqlConnection sqlConnection = new SqlConnection("Server=localhost\\SQLEXPRESS;Database=MyCompany;Trusted_Connection=True;");
+				using SqlConnection sqlConnection = new SqlConnection(_connString);
 				sqlConnection.Open();
 
 				using SqlCommand command = sqlConnection.CreateCommand();
