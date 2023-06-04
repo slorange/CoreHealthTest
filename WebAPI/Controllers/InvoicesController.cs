@@ -48,7 +48,13 @@ namespace WebAPI.Controllers
 							};
 							List<InvoiceItem> items = new List<InvoiceItem>();
 
-							Invoice invoice = new Invoice(invoiceId: reader.GetGuid(0), customer: customer, reference: reader.GetString(2), total: reader.GetDecimal(3));
+							Invoice invoice = new Invoice(
+								invoiceId: reader.GetGuid(0), 
+								customer: customer, 
+								reference: reader.GetString(2), 
+								total: reader.GetDecimal(3),
+								created: reader.GetDateTime(4)
+								);
 							invoice.Items.AddRange(items);
 							invoices.Add(invoice);
 						}
@@ -85,7 +91,9 @@ namespace WebAPI.Controllers
 								{
 									Item = item,
 									InvoiceId = invoice.InvoiceId,
-									InvoiceItemId = reader.GetGuid(0)
+									InvoiceItemId = reader.GetGuid(0),
+									Quantity = reader.GetInt32(3),
+									Created = reader.GetDateTime(4)
 								};
 
 								invoice.Items.Add(invoiceItem);
