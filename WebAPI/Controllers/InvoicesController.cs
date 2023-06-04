@@ -26,7 +26,12 @@ namespace WebAPI.Controllers
 				sqlConnection.Open();
 				using (SqlCommand command = sqlConnection.CreateCommand())
 				{
-					command.CommandText = $"select * from invoice as inv join customer as c on inv.CustomerId = c.CustomerId where c.Company = '" + company + "'";
+					command.CommandText = $@"
+						SELECT * FROM invoice AS inv 
+						JOIN customer AS c ON inv.CustomerId = c.CustomerId 
+						WHERE c.Company = @Company";
+
+					command.Parameters.AddWithValue("@Company", company);
 
 					SqlDataReader reader = command.ExecuteReader();
 					while (reader.Read())
@@ -54,7 +59,15 @@ namespace WebAPI.Controllers
 				{
 					using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
 					{
-						sqlCommand.CommandText = $"select ii.*, i.*, inv.* from InvoiceItem as ii join invoice as inv on ii.InvoiceId = inv.InvoiceId join Item as i on ii.ItemId = i.ItemId where inv.InvoiceId = '{invoice.InvoiceId}'";
+						sqlCommand.CommandText = $@"
+							SELECT ii.*, i.*, inv.* 
+							FROM InvoiceItem AS ii 
+							JOIN invoice AS inv ON ii.InvoiceId = inv.InvoiceId 
+							JOIN Item AS i ON ii.ItemId = i.ItemId 
+							WHERE inv.InvoiceId = @Invoice";
+
+						sqlCommand.Parameters.AddWithValue("@Invoice", invoice.InvoiceId);
+
 						sqlConnection.Open();
 						SqlDataReader reader = sqlCommand.ExecuteReader();
 						while (reader.Read())
