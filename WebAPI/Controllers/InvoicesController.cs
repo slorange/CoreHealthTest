@@ -21,6 +21,8 @@ namespace WebAPI.Controllers
 		{
 			try
 			{
+				_logger.LogInformation("Received GetInvoices request for company: " + company);
+
 				List<Invoice> invoices = new List<Invoice>();
 
 				using (SqlConnection sqlConnection = new SqlConnection("Server=localhost\\SQLEXPRESS;Database=MyCompany;Trusted_Connection=True;"))
@@ -104,6 +106,9 @@ namespace WebAPI.Controllers
 
 				decimal customerInvoiceTotal = invoices.Sum(invoice => invoice.Total);
 
+				_logger.LogInformation("Successful GetInvoices request for company: " + company);
+
+
 				return new Response<GetInvoicesResponse>(responseCode: "200", new GetInvoicesResponse()
 				{
 					Invoices = invoices,
@@ -112,6 +117,8 @@ namespace WebAPI.Controllers
 			}
 			catch(Exception e)
 			{
+				_logger.LogError("Error for GetInvoices request. Company: " + company + " Exception: " + e);
+
 				return new Response<GetInvoicesResponse>(responseCode: "500", new GetInvoicesResponse()
 				{
 					//would only surface exception here if this is an internal tool
